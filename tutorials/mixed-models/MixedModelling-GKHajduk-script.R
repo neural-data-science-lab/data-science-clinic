@@ -13,7 +13,7 @@
 
 ## load the data and have a look at it
 
-load("dragons.RData")
+load("../../data/dragons.RData")
 
 head(dragons)
 
