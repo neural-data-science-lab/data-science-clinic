@@ -157,11 +157,21 @@ ggplot(dragons, aes(x= bodyLength, y = testScore, colour=site)) +
   geom_line(data = cbind(dragons, pred=predict(mixed.lmer2)), aes(y=pred)) + 
   theme(legend.position = "none")
 
+##----- presenting model results -----##
+library(stargazer)
+stargazer(mixed.lmer2, type="text", digits=3, star.cutoffs = c(0.05, 0.01, 0.001), digit.separator = "")
+library(dotwhisker)
+dwplot(mixed.lmer2) #well...
+
 
 ##----- Model selection for the keen -----##
 
 ### full model
+full.lmer <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|sample), 
+                  data = dragons, REML = FALSE)
 
 ### reduced model
-
+reduced.lmer <- lmer(testScore ~ 1 + (1|mountainRange) + (1|sample), 
+                     data = dragons, REML = FALSE)
 ### comparison
+anova(reduced.lmer, full.lmer)  # the two models are not significantly different
