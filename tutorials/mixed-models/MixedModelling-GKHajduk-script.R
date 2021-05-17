@@ -105,17 +105,21 @@ summary(mountain.lm)
 ###----- Mixed effects models -----###
 
 
-
 ##----- First mixed model -----##
 
 ### model
-
+mixed.lmer <- lmer(testScore ~ bodyLength2 + (1|mountainRange), data = dragons)
+summary(mixed.lmer)
 ### plots
+plot(mixed.lmer)  # looks alright, no paterns evident
+qqnorm(resid(mixed.lmer))
+qqline(resid(mixed.lmer)) # looks pretty good
 
 ### summary
+summary(mixed.lmer)
 
 ### variance accounted for by mountain ranges
-
+339.7/(339.7 + 223.8)
 
 
 ##-- implicit vs explicit nesting --##
@@ -125,15 +129,33 @@ str(dragons)  # we took samples from three sites per mountain range and eight mo
 
 ### create new "sample" variable
 
+dragons <- within(dragons, sample <- factor(mountainRange:site))
 
 ##----- Second mixed model -----##
 
 ### model
+# a wrong specification. Why is it wrong? Because sites are nested within mountain ranges. Here they are modeled as crossed random effects.
+mixed.wrong <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|site), data = dragons)
+mixed.lmer2 <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|sample), data = dragons)
+#alternative ways to do the same nesting in the model specification
+mixed.lmer2b <- lmer(testScore ~ bodyLength2 + (1|mountainRange/site), data=dragons)
+mixed.lmer2c <- lmer(testScore ~ bodyLength2 + (1|mountainRange) + (1|mountainRange:site), data=dragons)
+
 
 ### summary
+summary(mixed.wrong)
+summary(mixed.lmer2)
+summary(mixed.lmer2b)
+summary(mixed.lmer2c)
+
 
 ### plot
-
+ggplot(dragons, aes(x= bodyLength, y = testScore, colour=site)) + 
+  facet_wrap(~mountainRange, nrow=3) + 
+  geom_point() + 
+  theme_classic() +
+  geom_line(data = cbind(dragons, pred=predict(mixed.lmer2)), aes(y=pred)) + 
+  theme(legend.position = "none")
 
 
 ##----- Model selection for the keen -----##
